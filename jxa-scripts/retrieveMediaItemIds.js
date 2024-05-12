@@ -1,23 +1,27 @@
+// console.log("Script loaded at:", new Date().toISOString());
+
+var Photos = Application("Photos");
+Photos.activate();
+
 function retrieveAllMediaItems(Photos) {
   return Photos.mediaItems();
 }
 
 function processMediaItemsInBatches(mediaItems, batchSize = 500) {
   var mediaItemIDs = [];
-  var errorIDs = []; // List to store IDs of items that caused errors
+  var errorIDs = [];
   var currentIndex = 0;
   var endIndex = Math.min(currentIndex + batchSize, mediaItems.length);
 
   while (currentIndex < mediaItems.length) {
     for (let i = currentIndex; i < endIndex; i++) {
       try {
-        mediaItemIDs.push(mediaItems[i].id()); // Attempt to retrieve the ID
+        mediaItemIDs.push(mediaItems[i].id());
       } catch (err) {
-        errorIDs.push(mediaItems[i].id()); // Add ID to error list if an error occurs
+        errorIDs.push(mediaItems[i].id());
       }
     }
 
-    // Update currentIndex to the next batch's start index
     currentIndex = endIndex;
     endIndex = Math.min(currentIndex + batchSize, mediaItems.length);
   }
@@ -27,13 +31,12 @@ function processMediaItemsInBatches(mediaItems, batchSize = 500) {
 
 function run() {
   var output = {
+    runId: new Date().toISOString(),
     mediaItems: [],
     errorItems: [],
   };
 
   try {
-    var Photos = Application("Photos");
-    Photos.activate(); // Ensure Photos is active
     var allMediaItems = retrieveAllMediaItems(Photos);
     var results = processMediaItemsInBatches(allMediaItems);
     output.mediaItems = results.mediaItemIDs;
@@ -42,7 +45,10 @@ function run() {
     output.error = err.message;
   }
 
-  console.log(JSON.stringify(output)); // Final output to stdout
+  // console.log(JSON.stringify(output));
+  return JSON.stringify(output);
 }
 
 run();
+
+// console.log("Script ended at:", new Date().toISOString());
