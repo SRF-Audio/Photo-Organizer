@@ -1,39 +1,47 @@
 from modules.jxaHandler import execute_jxa_script
 from modules.mongoHandler import MongoHandler
 import logging
+import json
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def newMediaItemFilter(mediaItemIds, mongo, mongoCollection):
-    """Filter and add new media items to the MongoDB collection if they don't already exist."""
+def retrieveAndStoreMetadata(mediaItems, mongo, mongoCollection):
+    """Store or update metadata for media items in the MongoDB collection."""
     new_items_added = 0
-    for item_id in mediaItemIds:
+    updates_made = 0
+    for item in mediaItems:
+        item_id = item['_id']
         if not mongo.document_exists(mongoCollection, item_id):
-            document = {'_id': item_id}
-            mongo.create_document(mongoCollection, document)
+            mongo.create_document(mongoCollection, item)
             new_items_added += 1
+        else:
+            existing_item = mongo.read_document(mongoCollection, item_id)
+            if existing_item['metadata'] != item['metadata']:
+                mongo.update_document(mongoCollection, item_id, {'metadata': item['metadata']})
+                updates_made += 1
+
     logging.info(f"Added {new_items_added} new media items to the collection.")
+    logging.info(f"Updated metadata for {updates_made} items in the collection.")
 
 def main():
     db_url = "mongodb://localhost:27017"
     db_name = "photoOrganizer"
-    collection_name = "mediaItemIds"
+    collection_name = "mediaItemMetadata"
 
     mongo_handler = MongoHandler(db_url)
     mongo_handler.connect(db_name)
 
-    retrieve_mediaItem_path = "./jxa-scripts/retrieveMediaItemIds.js"
+    retrieve_mediaItem_path = "./jxa-scripts/retrieveMediaItemMetadata.js"
     result = execute_jxa_script(retrieve_mediaItem_path)
-
     if result:
-        logging.info("Script executed successfully:")
-        media_item_ids = result.get('mediaItems', [])
-        if media_item_ids:
-            newMediaItemFilter(media_item_ids, mongo_handler, collection_name)
+        logging.info("Media items metadata retrieved successfully.")
+        mediaItems = json.loads(result) 
+        if mediaItems.get('mediaItems'):
+            retrieveAndStoreMetadata(mediaItems['mediaItems'], mongo_handler, collection_name)
         else:
-            logging.info("No new media items to process.")
+            logging.info("No media items to process.")
     else:
-        logging.error("Script execution failed.")
+        logging.error("Failed to retrieve media items metadata.")
 
     mongo_handler.disconnect()
 

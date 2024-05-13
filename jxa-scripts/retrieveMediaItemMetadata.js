@@ -1,14 +1,13 @@
-// console.log("Script loaded at:", new Date().toISOString());
+#!/usr/bin/osascript -l JavaScript
 
 var Photos = Application("Photos");
-Photos.activate();
 
 function retrieveAllMediaItems(Photos) {
   return Photos.mediaItems();
 }
 
 function processMediaItemsInBatches(mediaItems, batchSize = 500) {
-  var mediaItemIDs = [];
+  var mediaItemsData = [];
   var errorIDs = [];
   var currentIndex = 0;
   var endIndex = Math.min(currentIndex + batchSize, mediaItems.length);
@@ -16,9 +15,17 @@ function processMediaItemsInBatches(mediaItems, batchSize = 500) {
   while (currentIndex < mediaItems.length) {
     for (let i = currentIndex; i < endIndex; i++) {
       try {
-        mediaItemIDs.push(mediaItems[i].id());
+        var item = mediaItems[i];
+        var mediaData = {
+          _id: item.id(),
+          name: item.name() || null,
+          description: item.description() || null,
+          keywords: item.keywords() || [],
+          filename: item.filename() || null,
+        };
+        mediaItemsData.push(mediaData);
       } catch (err) {
-        errorIDs.push(mediaItems[i].id());
+        errorIDs.push(item.id());
       }
     }
 
@@ -26,10 +33,10 @@ function processMediaItemsInBatches(mediaItems, batchSize = 500) {
     endIndex = Math.min(currentIndex + batchSize, mediaItems.length);
   }
 
-  return { mediaItemIDs: mediaItemIDs, errorIDs: errorIDs };
+  return { mediaItemsData: mediaItemsData, errorIDs: errorIDs };
 }
 
-function run() {
+function retrieveMetaData() {
   var output = {
     runId: new Date().toISOString(),
     mediaItems: [],
@@ -39,16 +46,13 @@ function run() {
   try {
     var allMediaItems = retrieveAllMediaItems(Photos);
     var results = processMediaItemsInBatches(allMediaItems);
-    output.mediaItems = results.mediaItemIDs;
+    output.mediaItems = results.mediaItemsData;
     output.errorItems = results.errorIDs;
   } catch (err) {
     output.error = err.message;
   }
 
-  // console.log(JSON.stringify(output));
-  return JSON.stringify(output);
+  console.log(JSON.stringify(output));
 }
 
-run();
-
-// console.log("Script ended at:", new Date().toISOString());
+retrieveMetaData();
