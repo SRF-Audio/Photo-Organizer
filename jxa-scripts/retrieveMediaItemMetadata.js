@@ -52,7 +52,7 @@ function retrieveMetaData() {
     output.error = err.message;
   }
 
-  console.log(JSON.stringify(output));
+  return JSON.stringify(output);
 }
 
 retrieveMetaData();
