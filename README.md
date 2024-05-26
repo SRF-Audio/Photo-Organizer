@@ -21,6 +21,20 @@ The application will consist of several Python modules, each responsible for a s
 - awsHandler.py: Interacts with AWS Rekognition for automated photo tagging.
 - openAiHandler.py: Utilizes OpenAI's Vision API to enrich photo descriptions post-Rekognition analysis.
 
+### Environment Variables
+Create a file called `.env` in the project root directory, replacing any relevant values for your setup:
+```
+MONGO_URL=mongodb://localhost:27017
+DB_NAME=photoOrganizer
+COLLECTION_NAME=mediaItemMetadata
+AWS_ACCESS_KEY_ID=your_aws_access_key_id
+AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key
+AWS_REGION=us-east-2
+OPENAI_API_KEY=your_openai_api_key
+REKOGNITION_COLLECTION_ID=photo-organizer-collection
+
+```
+
 ## Detailed Module Design
 
 ### main.py
@@ -62,3 +76,4 @@ Handles API-specific errors and data parsing.
 
 Each module will include robust error handling to manage and log exceptions specific to their operations.
 The main.py will handle any uncaught exceptions from the modules, ensuring the application can gracefully recover or terminate.
+

@@ -50,3 +50,8 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
+
+.env
+
+/jxa-scripts/temp_photo_exports/*
+/jxa-scripts/temp_scripts/*
